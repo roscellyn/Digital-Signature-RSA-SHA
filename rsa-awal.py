@@ -1,5 +1,6 @@
 from sympy import randprime
 from random import randint
+from hashlib import sha1
 import time
 
 def is_prime(a):
@@ -109,8 +110,8 @@ def HexToDec(x):
     return (sum)
 
 # Memilih nilai p dan q
-p = randprime(2**32, 2**33)
-q = randprime(2**32, 2**33)
+p = randprime(2**16, 2**17)
+q = randprime(2**16, 2**17)
 # p = randint(2**32, 2**33)
 # while(not is_prime(p)):
 #     p = randint(2**32, 2**33)
@@ -119,8 +120,8 @@ q = randprime(2**32, 2**33)
 # while(not is_prime(q)):
 #     q = randint(2**32, 2**33)
 
-print(p)
-print(q)
+print("p: " + str(p))
+print("q: " + str(q))
 
 # Menghitung nilai n dan totient
 n = p * q
@@ -141,51 +142,85 @@ d = int(d)
 
 # Menyimpan kunci publik dan private
 f = open("key.pub", "w")
-f.write(str(e))
+f.write(str(e) + "," + str(n))
+f.close()
 f = open("key.pri", "w")
-f.write(str(d))
+f.write(str(d) + "," + str(n))
+f.close()
 
 start_time = time.time()
 
 # Enkripsi file
-f = open("initial_plaintext.jpg","rb")
+f = open("text.txt","r")
 file_bytes = f.read()
 f.close()
-c_hex = ""
-i = 0
-for byte in file_bytes:
-    c_hex += DecToHex(byte**e % n)
-    if i < len(file_bytes)-1:
-        c_hex += " "
-    i += 1
+
+hash = sha1(file_bytes)
+digest = hash.hexdigest()
+
+# f.close()
+# c_hex = ""
+# i = 0
+# for byte in file_bytes:
+#     c_hex += DecToHex(byte**e % n)
+#     if i < len(file_bytes)-1:
+#         c_hex += " "
+#     # i += 1
 # print("cipherteks(hex) = " + c_hex)
 
-# # Menyimpan file cipherteks
-f = open("cipherteks_hex.jpg", "w")
-f.write(c_hex)
+# print(HexToDec(digest))
+s = HexToDec(digest)**d % n
+s_hex = DecToHex(s)
+# print(s)
+
+# Menambahkan signature ke file
+f = open("text.txt", "a")
+text = "\n<ds>" + str(s_hex) + "</ds>" 
+f.write(text)
 f.close()
 
-# Dekripsi file
-f = open("cipherteks_hex.jpg", "r")
-c_hex = f.read()
-arr_cb = c_hex.split(" ")
-
+# Verifikasi Signature
+f = open("text.txt", "r")
+file_text = f.read()
+sign_message = file_text.split("\n<ds>")
+message = sign_message[0]
+sign = sign_message[1].split("</ds>")[0]
+# print(message)
+# print(sign)
 f.close()
-arr_p = []
-for cb in arr_cb:
-    temp = HexToDec(cb)**d % n
-    arr_p.append(temp)
+
+# hash = sha1(file_bytes)
+# digest = hash.hexdigest()
+# s = HexToDec(digest)**d % n
+# s_hex = DecToHex(s)
+
+print(HexToDec(sign))
+hash_message = HexToDec(sha1(message).hexdigest()) % n
+print("Hash message: " + str(hash_message))
+hash_sign = HexToDec(sign)**e % n
+print("Hash sign: " + str(hash_sign))
+
+if (hash_message == hash_sign):
+    print("Tanda tangan digital otentik")
+else:
+    print("Tanda tangan digital tidak otentik")
+
+# f.close()
+# arr_p = []
+# for cb in arr_cb:
+#     temp = HexToDec(cb)**d % n
+#     arr_p.append(temp)
     
-# print("plainteks = ")
-# print(arr_p)
-# print("plainteks(bytes) = ")
-# print(bytearray(arr_p))
-# print(arr_p)
-f = open("plainteks.jpg", "wb")
-arr_pb = bytearray(arr_p)
-# print(len(arr_pb))
-f.write(arr_pb)
-f.close()
+# # print("plainteks = ")
+# # print(arr_p)
+# # print("plainteks(bytes) = ")
+# # print(bytearray(arr_p))
+# # print(arr_p)
+# f = open("plainteks.jpg", "wb")
+# arr_pb = bytearray(arr_p)
+# # print(len(arr_pb))
+# f.write(arr_pb)
+# f.close()
 
-end_time = time.time()
-print("Waktu: " + str(round(end_time - start_time, 2)))
+# end_time = time.time()
+# print("Waktu: " + str(round(end_time - start_time, 2)))
