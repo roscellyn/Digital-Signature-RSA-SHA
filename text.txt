@@ -1,12 +1,2 @@
-Tanda-tangan digital dapat digunakan untuk otentikasi data digital, 
-seperti pesan yang dikirim melalui saluran komunikasi dan dokumen elektronis yang disimpan dalam komputer.
-
-Pada tugas ke-4 ini, anda diminta membuat aplikasi desktop yang mengimplementasikan algoritma RSA + 
-SHA-1 untuk memberi tanda-tangan digital pada dokumen (file) elektronis. Dalam hal ini, anda sebagai pemilik 
-dokumen mempunyai sepasang kunci, yaitu kunci publik dan kunci privat.
-
-Untuk aplikasi desktop, tanda tangan dapat disimpan di dalam dokumen terpisah atau digabung di dalam file 
-yang ditandatangani (tanda tangan digitak diletakkan pada akhir dokumen). 
-
-Pengguna dapat memilih apakah tanda-tangan disimpan di dalam dokumen terpisah atau disatukan di dalam file pesan.
-<ds>2a18065e7</ds>
+halo123.
+<ds>cadc</ds>

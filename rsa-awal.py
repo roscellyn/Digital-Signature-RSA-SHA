@@ -110,8 +110,8 @@ def HexToDec(x):
     return (sum)
 
 # Memilih nilai p dan q
-p = randprime(2**16, 2**17)
-q = randprime(2**16, 2**17)
+p = randprime(2**9, 2**10)
+q = randprime(2**9, 2**10)
 # p = randint(2**32, 2**33)
 # while(not is_prime(p)):
 #     p = randint(2**32, 2**33)
@@ -152,10 +152,10 @@ start_time = time.time()
 
 # Enkripsi file
 f = open("text.txt","r")
-file_bytes = f.read()
+plain_text = f.read()
 f.close()
 
-hash = sha1(file_bytes)
+hash = sha1(plain_text.encode('utf-8'))
 digest = hash.hexdigest()
 
 # f.close()
@@ -194,8 +194,9 @@ f.close()
 # s = HexToDec(digest)**d % n
 # s_hex = DecToHex(s)
 
-print(HexToDec(sign))
-hash_message = HexToDec(sha1(message).hexdigest()) % n
+print(HexToDec(digest))
+print(HexToDec(sha1(message.encode('utf-8')).hexdigest()))
+hash_message = HexToDec(sha1(message.encode('utf-8')).hexdigest()) % n
 print("Hash message: " + str(hash_message))
 hash_sign = HexToDec(sign)**e % n
 print("Hash sign: " + str(hash_sign))
