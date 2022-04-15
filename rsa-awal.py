@@ -109,16 +109,9 @@ def HexToDec(x):
     
     return (sum)
 
-# Memilih nilai p dan q
+# Memilih nilai p dan q secara random
 p = randprime(2**9, 2**10)
 q = randprime(2**9, 2**10)
-# p = randint(2**32, 2**33)
-# while(not is_prime(p)):
-#     p = randint(2**32, 2**33)
-
-# q = randint(2**32, 2**33)
-# while(not is_prime(q)):
-#     q = randint(2**32, 2**33)
 
 print("p: " + str(p))
 print("q: " + str(q))
@@ -127,12 +120,12 @@ print("q: " + str(q))
 n = p * q
 totient = (p-1) * (q-1)
 
-# Memilih nilai e
+# Menghitung kunci publik
 e = randint(3, 2**16+1)
 while(fpb(totient, e) != 1):
     e = randint(3, 2**16+1)
 
-# Menghitung kunci
+# Menghitung kunci private
 k = 1
 d = 0.1
 while(d%1 != 0):
@@ -144,6 +137,7 @@ d = int(d)
 f = open("key.pub", "w")
 f.write(str(e) + "," + str(n))
 f.close()
+
 f = open("key.pri", "w")
 f.write(str(d) + "," + str(n))
 f.close()
@@ -151,77 +145,57 @@ f.close()
 start_time = time.time()
 
 # Enkripsi file
+# Membaca pesan awal dari file
 f = open("text.txt","r")
-plain_text = f.read()
+message = f.read()
 f.close()
 
-hash = sha1(plain_text.encode('utf-8'))
+# Membaca kunci private dari file
+f = open("key.pri","r")
+file_pkey = f.read()
+private_key = int(file_pkey.split(",")[0])
+private_n = int(file_pkey.split(",")[1])
+f.close()
+
+# Menghitung hash dari pesan awal
+hash = sha1(message.encode('utf-8'))
 digest = hash.hexdigest()
 
-# f.close()
-# c_hex = ""
-# i = 0
-# for byte in file_bytes:
-#     c_hex += DecToHex(byte**e % n)
-#     if i < len(file_bytes)-1:
-#         c_hex += " "
-#     # i += 1
-# print("cipherteks(hex) = " + c_hex)
-
-# print(HexToDec(digest))
-s = HexToDec(digest)**d % n
+# Menghitung sign dari hash
+s = HexToDec(digest)**private_key % private_n
 s_hex = DecToHex(s)
-# print(s)
 
-# Menambahkan signature ke file
+# Menambahkan sign ke file
 f = open("text.txt", "a")
 text = "\n<ds>" + str(s_hex) + "</ds>" 
 f.write(text)
 f.close()
 
 # Verifikasi Signature
+# Membaca pesan dan sign dari file
 f = open("text.txt", "r")
 file_text = f.read()
 sign_message = file_text.split("\n<ds>")
-message = sign_message[0]
-sign = sign_message[1].split("</ds>")[0]
+verif_message = sign_message[0]
+verif_sign = sign_message[1].split("</ds>")[0]
 # print(message)
 # print(sign)
 f.close()
 
-# hash = sha1(file_bytes)
-# digest = hash.hexdigest()
-# s = HexToDec(digest)**d % n
-# s_hex = DecToHex(s)
+# Membaca public key dari file
+f = open("key.pub","r")
+file_key = f.read()
+public_key = int(file_key.split(",")[0])
+public_n = int(file_key.split(",")[1])
+f.close()
 
-print(HexToDec(digest))
-print(HexToDec(sha1(message.encode('utf-8')).hexdigest()))
-hash_message = HexToDec(sha1(message.encode('utf-8')).hexdigest()) % n
-print("Hash message: " + str(hash_message))
-hash_sign = HexToDec(sign)**e % n
-print("Hash sign: " + str(hash_sign))
+# Menghitung hash dari pesan dan signature
+hash_message = HexToDec(sha1(verif_message.encode('utf-8')).hexdigest()) % n
+hash_sign = HexToDec(verif_sign)**public_key % n
+# print("Hash message: " + str(hash_message))
+# print("Hash sign: " + str(hash_sign))
 
 if (hash_message == hash_sign):
     print("Tanda tangan digital otentik")
 else:
     print("Tanda tangan digital tidak otentik")
-
-# f.close()
-# arr_p = []
-# for cb in arr_cb:
-#     temp = HexToDec(cb)**d % n
-#     arr_p.append(temp)
-    
-# # print("plainteks = ")
-# # print(arr_p)
-# # print("plainteks(bytes) = ")
-# # print(bytearray(arr_p))
-# # print(arr_p)
-# f = open("plainteks.jpg", "wb")
-# arr_pb = bytearray(arr_p)
-# # print(len(arr_pb))
-# f.write(arr_pb)
-# f.close()
-
-# end_time = time.time()
-# print("Waktu: " + str(round(end_time - start_time, 2)))
