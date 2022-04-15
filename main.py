@@ -12,6 +12,7 @@ from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtGui import QIntValidator
 from PyQt5.QtWidgets import QStackedWidget, QFileDialog, QDialog
+from PyQt5.QtCore import QTimer
 
 # import sys
 # from PyQt5 import QtWidgets, QtCore, QtGui
@@ -51,6 +52,9 @@ class GenerateScreen(QtWidgets.QMainWindow):
             return a
         else:
             return self.fpb(b, a % b)
+    
+    def setBlankAlert(self):
+        self.alert.setText("")
             
     def generateKey(self):
         self.p = randprime(2**9, 2**10)
@@ -82,7 +86,12 @@ class GenerateScreen(QtWidgets.QMainWindow):
         file.close()
         
         self.alert.setText("Public key saved successfully")
-    
+
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.timeout.connect(self.setBlankAlert)
+        timer.start(3000)
+
     def savePrivateKey(self):
         name = QFileDialog.getSaveFileName(self, 'Save Private Key')
         file = open(name[0],'w')
@@ -90,6 +99,11 @@ class GenerateScreen(QtWidgets.QMainWindow):
         file.close()
 
         self.alert.setText("Private key saved successfully")
+
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.timeout.connect(self.setBlankAlert)
+        timer.start(3000)
 
 class SignScreen(QtWidgets.QMainWindow):
     def __init__(self):
@@ -129,7 +143,7 @@ class SignScreen(QtWidgets.QMainWindow):
         self.is_message_browsed = True
         self.display_message.setText(self.message)
 
-        if (self.is_private_key_browsed and self.is_message_browsed):
+        if (self.is_private_key_browsed):
             self.sign_message.setDisabled(False)
     
     def browsePrivateKey(self):
@@ -143,7 +157,7 @@ class SignScreen(QtWidgets.QMainWindow):
         self.is_private_key_browsed = True
         self.display_private.setText(str(self.private_key))
 
-        if (self.is_private_key_browsed and self.is_message_browsed):
+        if (self.is_message_browsed):
             self.sign_message.setDisabled(False)
     
     def DecToHex(self, x):
@@ -232,12 +246,15 @@ class SignScreen(QtWidgets.QMainWindow):
                 sum = sum + (15 * (16**(len(x)-1-i)))
         
         return (sum)
-      
+    
+    def setBlankAlert(self):
+        self.alert.setText("")
+
     def signMessage(self):
         self.alert.setText("Signing Message..")
 
         # Menghitung hash dari pesan awal
-        hash = sha1(self.message)
+        hash = sha1(self.message.encode('utf-8'))
         digest = hash.hexdigest()
 
         # Menghitung sign dari hash
@@ -255,6 +272,11 @@ class SignScreen(QtWidgets.QMainWindow):
         file.close()
 
         self.alert.setText("Message signed successfully")
+
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.timeout.connect(self.setBlankAlert)
+        timer.start(3000)
 
 class VerifyScreen(QtWidgets.QMainWindow):
     def __init__(self):
@@ -283,9 +305,17 @@ class VerifyScreen(QtWidgets.QMainWindow):
     def changeLocation(self):
         if(self.location_1.isChecked()):
             self.browse_sign.setDisabled(False)
+            if (self.is_public_key_browsed and self.is_message_browsed and self.is_sign_browsed):
+                self.verify_sign.setDisabled(False)
+            else:
+                self.verify_sign.setDisabled(True)
         else:
             self.browse_sign.setDisabled(True)
-     
+            if (self.is_public_key_browsed and self.is_message_browsed):
+                self.verify_sign.setDisabled(False)
+            else:
+                self.verify_sign.setDisabled(True)
+        
     def goToGenerate(self):
         generatescreen = GenerateScreen()
         widget.addWidget(generatescreen)
@@ -306,10 +336,10 @@ class VerifyScreen(QtWidgets.QMainWindow):
         self.display_message.setText(self.message)
 
         if(self.location_1.isChecked()):
-            if (self.is_public_key_browsed and self.is_message_browsed and self.is_sign_browsed):
+            if (self.is_public_key_browsed and self.is_sign_browsed):
                 self.verify_sign.setDisabled(False)
         else:
-            if (self.is_public_key_browsed and self.is_message_browsed):
+            if (self.is_public_key_browsed):
                 self.verify_sign.setDisabled(False)
 
     def browsePublicKey(self):
@@ -324,10 +354,10 @@ class VerifyScreen(QtWidgets.QMainWindow):
         self.display_public.setText(str(self.public_key))
 
         if(self.location_1.isChecked()):
-            if (self.is_public_key_browsed and self.is_message_browsed and self.is_sign_browsed):
+            if (self.is_message_browsed and self.is_sign_browsed):
                 self.verify_sign.setDisabled(False)
         else:
-            if (self.is_public_key_browsed and self.is_message_browsed):
+            if (self.is_message_browsed):
                 self.verify_sign.setDisabled(False)
     
     def browseSign(self):
@@ -336,8 +366,9 @@ class VerifyScreen(QtWidgets.QMainWindow):
         self.sign = file.read()
         file.close()
 
+        self.is_sign_browsed = True
         if (self.is_public_key_browsed and self.is_message_browsed):
-                self.verify_sign.setDisabled(False)
+            self.verify_sign.setDisabled(False)
     
     def HexToDec(self, x):
         sum = 0
@@ -376,7 +407,10 @@ class VerifyScreen(QtWidgets.QMainWindow):
                 sum = sum + (15 * (16**(len(x)-1-i)))
         
         return (sum)
-    
+
+    def setBlankAlert(self):
+        self.alert.setText("")
+
     def verifySign(self):
         if(self.location_2.isChecked()):
             arr_message = self.message.split("\n<ds>")
@@ -390,6 +424,11 @@ class VerifyScreen(QtWidgets.QMainWindow):
             self.alert.setText("Signature Valid")
         else:
             self.alert.setText("Signature Invalid")
+        
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.timeout.connect(self.setBlankAlert)
+        timer.start(3000)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
