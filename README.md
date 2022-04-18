@@ -3,7 +3,8 @@
 ## How to Run the Program
 
 1. Clone the repository
-2. Run main.py file
+2. Open src folder
+3. Run main.py file 
 
 ```
 python main.py
