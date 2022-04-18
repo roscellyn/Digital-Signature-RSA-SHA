@@ -16,7 +16,7 @@ from PyQt5.QtCore import QTimer
 class GenerateScreen(QtWidgets.QMainWindow):
     def __init__(self):
         super(GenerateScreen, self).__init__()
-        loadUi(".\generate.ui", self)
+        loadUi("generate.ui", self)
     
         self.menu_1.setChecked(True)
         self.menu_2.clicked.connect(self.goToSign)
