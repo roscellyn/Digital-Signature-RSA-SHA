@@ -1,8 +1,6 @@
 # ! /usr/bin/python3
 from sys import exit as sysExit
 import sys
-import os.path
-import time
 
 from sympy import randprime
 from random import randint
@@ -14,17 +12,11 @@ from PyQt5.QtGui import QIntValidator
 from PyQt5.QtWidgets import QStackedWidget, QFileDialog, QDialog
 from PyQt5.QtCore import QTimer
 
-# import sys
-# from PyQt5 import QtWidgets, QtCore, QtGui
-# from PyQt5.QtWidgets import QDialog, QApplication, QCheckBox, QFileDialog, QWidget, QTableWidgetItem, QPushButton, QHBoxLayout, QLabel
-# from PyQt5.QtGui import QDoubleValidator, QValidator, QIntValidator, QPixmap
-# from PyQt5.uic import loadUi
-
-# Generate Screen #
+# Generate Screen
 class GenerateScreen(QtWidgets.QMainWindow):
     def __init__(self):
         super(GenerateScreen, self).__init__()
-        loadUi("generate.ui", self)
+        loadUi(".\generate.ui", self)
     
         self.menu_1.setChecked(True)
         self.menu_2.clicked.connect(self.goToSign)
@@ -105,6 +97,7 @@ class GenerateScreen(QtWidgets.QMainWindow):
         timer.timeout.connect(self.setBlankAlert)
         timer.start(3000)
 
+# Sign Screen
 class SignScreen(QtWidgets.QMainWindow):
     def __init__(self):
         super(SignScreen, self).__init__()
@@ -278,6 +271,7 @@ class SignScreen(QtWidgets.QMainWindow):
         timer.timeout.connect(self.setBlankAlert)
         timer.start(3000)
 
+# Verify Screen
 class VerifyScreen(QtWidgets.QMainWindow):
     def __init__(self):
         super(VerifyScreen, self).__init__()
@@ -414,16 +408,22 @@ class VerifyScreen(QtWidgets.QMainWindow):
     def verifySign(self):
         if(self.location_2.isChecked()):
             arr_message = self.message.split("\n<ds>")
-            self.message = arr_message[0]
-            self.sign = arr_message[1].split("</ds>")[0]
-            
+            if (len(arr_message) == 1):
+                self.alert.setText("No signature detected")
+            else:
+                self.message = arr_message[0]
+                self.sign = arr_message[1].split("</ds>")[0]
+         
         hash_message = self.HexToDec(sha1(self.message.encode('utf-8')).hexdigest()) % self.public_n
         hash_sign = self.HexToDec(self.sign)**self.public_key % self.public_n
 
-        if hash_message == hash_sign:
-            self.alert.setText("Signature Valid")
+        if(hash_sign == 0):
+            self.alert.setText("No signature detected")
         else:
-            self.alert.setText("Signature Invalid")
+            if hash_message == hash_sign:
+                self.alert.setText("Signature Valid")
+            else:
+                self.alert.setText("Signature Invalid")
         
         timer = QTimer(self)
         timer.setSingleShot(True)
@@ -444,15 +444,3 @@ if __name__ == "__main__":
     widget.show()
     
     sys.exit(app.exec_())
-
-#     app = QApplication(sys.argv)
-# login = LoginScreen()
-# widget = QtWidgets.QStackedWidget()
-# widget.addWidget(login)
-# widget.setFixedWidth(1366)
-# widget.setFixedHeight(768)
-# widget.show()
-# try:
-#     sys.exit(app.exec_())
-# except:
-#     print("Exiting")
